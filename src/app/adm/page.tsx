@@ -65,6 +65,7 @@ const Adm = () => {
       .post("/posts", newPost)
       .then((res) => {
         setError(null);
+        setNewPost(initialPost);
         setOpenInfo(true);
       })
       .catch((error) => {

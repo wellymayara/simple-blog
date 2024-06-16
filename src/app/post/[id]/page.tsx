@@ -19,7 +19,7 @@ const PostDetails = () => {
   const params = useParams<{ id: string }>();
 
   const { data, isLoading, isError } = useQuery<any>(["post"], () =>
-    PostService.getAllPosts()
+    PostService.getAllPosts(0)
   );
 
   const [post, setPost] = useState();
@@ -27,7 +27,9 @@ const PostDetails = () => {
   console.log(data);
 
   useEffect(() => {
-    setPost(data?.filter((post) => post.id == params.id));
+    if (data) {
+      setPost(data.content?.filter((post) => post.id == params.id));
+    }
   }, [data]);
 
   if (isLoading) return <Typography variant="body1">Carregando...</Typography>;

@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { QueryClient, QueryClientProvider } from "react-query";
 import GlobalStyles from "./styles/GlobalStyles";
 import Header from "./components/molecules/header";
+import Sidebar from "./components/molecules/sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 

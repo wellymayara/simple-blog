@@ -17,19 +17,74 @@ import {
   Link,
   Stack,
   Chip,
+  CircularProgress,
+  Button,
+  Pagination,
 } from "@mui/material";
 import formatarData from "@/util/formatDate";
+import { setHeapSnapshotNearHeapLimit } from "v8";
 
 export default function Home() {
-  const { data, dataUpdatedAt, error, isFetched, isLoading, isError } =
-    useQuery<Post[]>("posts", () => PostService.getAllPosts());
+  const [page, setPage] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
+  const {
+    data: allPosts,
+    error,
+    isFetched,
+    isLoading,
+    isError,
+    refetch: reAllPosts,
+    isRefetching,
+  } = useQuery(["posts", page], () => PostService.getAllPosts(page), {
+    keepPreviousData: true, // Manter os dados anteriores enquanto faz refetch
+  });
+
+  const { data: category } = useQuery("category", () =>
+    PostService.getCategories()
+  );
+
+  const { data: dataCategory, refetch: refetchCategory } = useQuery(
+    ["selectedCategory", selectedCategory, page],
+    () => PostService.getPostsByCategory(selectedCategory, page),
+    { enabled: !!selectedCategory, keepPreviousData: true }
+  );
+
+  const handleSelectCategory = (category: any) => {
+    setSelectedCategory(category);
+    setPage(0); // Reset page when category changes
+  };
+
+  const handlePage = (event: any, value: any) => {
+    setPage(value - 1);
+  };
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      reAllPosts();
+    }
+  }, [page, reAllPosts, selectedCategory]);
+
+  const data = selectedCategory ? dataCategory : allPosts?.content;
+
+  console.log(isLoading, data);
   return (
     <div>
-      {isLoading ? (
-        <>Carregando ... </>
+      {isLoading || !data ? (
+        <CircularProgress color="success" />
       ) : (
         <>
+          <aside>
+            <Typography variant="h6" sx={{ marginLeft: "10px" }}>
+              Categorias:
+            </Typography>
+            <Button onClick={() => setSelectedCategory("")}>Todos</Button>
+            {category?.map((category) => (
+              <Button onClick={() => handleSelectCategory(category)}>
+                {category}
+              </Button>
+            ))}
+          </aside>
           <Container>
             <Grid container spacing={3} style={{ marginTop: "20px" }}>
               {data?.map((post, index) => (
@@ -85,6 +140,13 @@ export default function Home() {
               ))}
             </Grid>
           </Container>
+          <Pagination
+            page={page + 1}
+            count={allPosts?.totalPages}
+            color="primary"
+            onChange={handlePage}
+            sx={{ margin: "2rem auto" }}
+          />
           <footer
             style={{
               backgroundColor: "#333",
